@@ -16,7 +16,7 @@ Before launching into the four protocols outlined above, users should take time 
     
 (iii)	Taxonomic resolution: If species‐level assignments are critical, ensure the EMU reference database is up‐to‐date. Users may optionally rebuild a custom EMU database following the instructions in Protocol 3.
 
-### 2. Workflow modularity (Figure 1)
+### 2. Workflow modularity
 
 (i)	Modular steps: Each Basic Protocol can be run independently, allowing users to pause between stages for example, reviewing NanoPlot reports before proceeding to organelle filtering.
     
