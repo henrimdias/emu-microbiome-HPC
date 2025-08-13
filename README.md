@@ -54,7 +54,7 @@ Before launching into the four protocols outlined above, users should take time 
     
 (iv)	Logging and provenance: Include module list, conda list, and invocation commands at the top of each SLURM script to capture the software stack for reproducibility.
 
-## Full protocol
+### Full protocol
 
 If you use this protocol for your analysis, please cite it using the following [doi: xxxxxxx](https://www.biorxiv.org/content/10.1101/2024.11.12.623179v1)
 
