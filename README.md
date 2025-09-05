@@ -7,7 +7,7 @@ Accurately profiling soil and root-associated bacterial communities generates va
 
 Before launching into the four protocols outlined above, users should take time to organize their computational environment, define key parameters, and map out the overall workflow. The diagram in Figure 1 provides a high‐level flowchart of the EMU pipeline from raw Nanopore FASTQ files through quality control, organelle filtering, exact‐matching taxonomic assignment, and downstream ecological analyses. Below we summarize the main considerations and options that will ensure a smooth, reproducible execution of the protocol.
 
-![alt text](Workflow.png)
+![alt text](Figure_1_workflow.png)
 
 ### 1. Experimental design and parameter selection
 
