@@ -9,27 +9,7 @@ Before launching into the four protocols outlined above, users should take time 
 
 ![alt text](Figure_1_workflow.png)
 
-### 1. Experimental design and parameter selection
-
-(i)	Sample throughput and depth: Estimate the total number of samples and expected read yield per sample. This informs the choice of minimum quality (e.g., Q≥10) and length thresholds (e.g., ≥1,8 kb) in Protocol 1 and helps size SLURM array jobs in Protocols 2 and 3.
-    
-(ii)	Contamination sensitivity: Decide whether to include more permissive Kraken2 confidence levels (e.g., 0.5-0.7) when filtering chloroplast/mitochondrial reads in Protocol 2, balancing false positives against retaining genuine bacterial sequences.
-    
-(iii)	Taxonomic resolution: If species‐level assignments are critical, ensure the EMU reference database is up‐to‐date. Users may optionally rebuild a custom EMU database following the instructions in Protocol 3.
-
-### 2. Workflow modularity
-
-(i)	Modular steps: Each Basic Protocol can be run independently, allowing users to pause between stages for example, reviewing NanoPlot reports before proceeding to organelle filtering.
-    
-(ii)	Checkpoint files: At the end of each stage, organize outputs into versioned directories (e.g., raw_qc/, filtered_reads/, kraken_reports/, emu_outputs/) so that rerunning or parameter tweaking can target a single module without reprocessing upstream data.
-    
-(iii)	Visualization checkpoints: After Basic Protocol 1 and Protocol 2, inspect QC summaries and contamination tables to confirm expected improvements before committing large HPC runs in Protocol 3.
-
-### 3. HPC Organization and resource allocation
-        
-(i) Directory structure. On the cluster, create a project root on scratch for I/O-heavy work or on the project share for long-term storage. Either make it manually or (recommended) clone the template from the GitHub repository.
-
-#### Project directory layout (optional)
+#### Project directory layout (recommended)
 
 ```text
 /$USER/scratch/emu_pipeline/
@@ -46,12 +26,6 @@ Before launching into the four protocols outlined above, users should take time 
 ├── downstream_analysis/
 └── scripts/
 ```
-
-(ii)	Conda environments: Maintain separate environments, nanotools_env, preemu_env, emu_env to avoid software conflicts. Load environments via SLURM scripts at the start of each job.
-
-(iii)	SLURM array jobs: Leverage array indexing (--array=1–N) to parallelize per‐sample steps. Specify memory (--mem=4G–24G) and CPU cores (--cpus-per-task=1–8) based on per‐step requirements: light for NanoPlot, heavier for EMU.
-    
-(iv)	Logging and provenance: Include module list, conda list, and invocation commands at the top of each SLURM script to capture the software stack for reproducibility.
 
 ### Full protocol
 
