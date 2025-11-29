@@ -43,7 +43,7 @@
 #   saved under $OUTDIR, ready for inclusion in a Kraken2 database build.
 #
 # Usage:
-#   bash download_organelle_refseq.sh
+#   bash download_plant_organelle_RefSeq_fastas.sh
 #
 # For full reproducibility, the software versions and URLs used here are
 # documented in the manuscript / accompanying documentation.
