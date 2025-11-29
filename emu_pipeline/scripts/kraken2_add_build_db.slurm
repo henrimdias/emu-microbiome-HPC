@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 # =============================================================================
 # Article:
 # Dias, H.M., et al. Reproducible Emu-based workflow for high-fidelity soil and
