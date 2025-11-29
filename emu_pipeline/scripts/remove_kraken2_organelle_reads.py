@@ -1,4 +1,59 @@
 #!/usr/bin/env python3
+# =============================================================================
+# Article:
+# Dias, H.M., et al. Reproducible Emu-based workflow for high-fidelity soil and
+# plant microbiome profiling on HPC clusters. Bio-protocol. 2025.
+#
+# Script:
+# Filter FASTQ reads to keep only Kraken2-unclassified reads (non-organelle)
+# prior to EMU-based taxonomic profiling.
+#
+# Author (script):
+# Henrique M. Dias
+#
+# Affiliation:
+# South Dakota State University
+#
+# Date:
+# 2025
+#
+# Description:
+# This script uses a Kraken2 classification output file to identify reads
+# labeled as "Unclassified" (flag "U") and retains only those reads from a
+# gzip-compressed FASTQ file. It is intended for removing organelle-matching
+# reads (classified) and keeping non-organelle reads for downstream EMU
+# analysis.
+#
+# The script performs:
+#   - Parses Kraken2 output to collect IDs of unclassified reads.
+#   - Iterates through a .fastq.gz file with Biopython SeqIO.
+#   - Writes only unclassified reads to an output FASTQ file.
+#   - Prints a simple summary of total, kept, and removed reads.
+#
+# Assumptions:
+#   - Kraken2 output is in standard tab-delimited format with "U" or "C" in
+#     the first column and read IDs in the second column.
+#   - Input reads are gzip-compressed FASTQ (.fastq.gz).
+#   - Biopython is installed and available (SeqIO).
+#
+# Inputs (command-line arguments):
+#   --input          : input .fastq.gz file
+#   --kraken_output  : Kraken2 output file (per-read classification)
+#   --output         : output FASTQ file with only unclassified reads
+#
+# Outputs:
+#   - A FASTQ file containing only unclassified reads, suitable for EMU
+#     full-length 16S profiling after organelle contamination removal.
+#
+# Usage:
+#   python remove_kraken2_organelle_reads.py \
+#       --input sample.fastq.gz \
+#       --kraken_output sample_kraken_output.txt \
+#       --output sample_filtered.fastq
+#
+# For full reproducibility, the versions of Python, Biopython, and Kraken2
+# are documented in the manuscript / accompanying documentation.
+# =============================================================================
 
 import gzip
 import argparse
