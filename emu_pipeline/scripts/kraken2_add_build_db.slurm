@@ -44,7 +44,7 @@
 #     read filtering prior to EMU-based microbiome profiling.
 #
 # Usage:
-#   sbatch kraken2_build_final.sh
+#   sbatch kraken2_add_build_db.slurm
 #
 # For full reproducibility, the versions of Kraken2 and dependencies are listed
 # in the manuscript / accompanying documentation.
@@ -52,7 +52,7 @@
 
 #SBATCH --job-name=kraken2_build_final
 #SBATCH --output=/put/your/path/kraken_organelle_db/kraken2_build_%j.out
-#SBATCH --error=/put/your/path/henrique.dias/kraken_organelle_db/kraken2_build_%j.err
+#SBATCH --error=/put/your/path/kraken_organelle_db/kraken2_build_%j.err
 #SBATCH --time=2-00:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
