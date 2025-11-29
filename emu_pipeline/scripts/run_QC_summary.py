@@ -55,7 +55,7 @@
 #   - sequencing_plots.pdf           : metric-wise bar plots (pre vs post)
 #
 # Usage:
-#   python summarize_nanostat_reports.py
+#   python run_QC_summary.py
 #
 # For full reproducibility, the software versions (Python, pandas, matplotlib,
 # NanoStat, NanoFilt) are documented in the manuscript / documentation.
