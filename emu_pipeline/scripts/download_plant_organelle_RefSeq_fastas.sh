@@ -1,7 +1,56 @@
-#!/bin/bash
+!/bin/bash
+# =============================================================================
+# Article:
+# Dias, H.M., et al. Reproducible Emu-based workflow for high-fidelity soil and
+# plant microbiome profiling on HPC clusters. Bio-protocol. 2025.
+#
+# Script:
+# Download and prepare RefSeq plastid and mitochondrion genomes for building
+# an organelle-focused Kraken2 database within the workflow described above.
+#
+# Author (script):
+# Henrique M. Dias
+#
+# Affiliation:
+# South Dakota State University
+#
+# Date:
+# 2025
+#
+# Description:
+# This helper script downloads RefSeq plastid and mitochondrion genome FASTA
+# files from NCBI, stores them under a user-defined directory, and decompresses
+# them so they can be used as input for Kraken2 database construction.
+#
+# The script performs:
+#   - Creation of the output directory (if it does not exist)
+#   - Download of plastid and mitochondrion RefSeq genome archives (.fna.gz)
+#   - Basic integrity check that both files were downloaded
+#   - Decompression of the .gz archives into plain FASTA (.fna) files
+#
+# Assumptions:
+#   - wget and gunzip are installed and available in the PATH
+#   - The user has write permissions to the chosen OUTDIR
+#
+# Inputs (user configuration below):
+#   OUTDIR      : path to the directory where organelle FASTA files will be saved
+#   PLASTID_URL : URL to RefSeq plastid genomes (.fna.gz)
+#   MITO_URL    : URL to RefSeq mitochondrion genomes (.fna.gz)
+#
+# Outputs:
+#   - plastid.3.1.genomic.fna
+#   - mitochondrion.1.1.genomic.fna
+#   saved under $OUTDIR, ready for inclusion in a Kraken2 database build.
+#
+# Usage:
+#   bash download_organelle_refseq.sh
+#
+# For full reproducibility, the software versions and URLs used here are
+# documented in the manuscript / accompanying documentation.
+# =============================================================================
 
 # Define output directory
-OUTDIR="/home/jacks.local/henrique.dias/scratch/emu_pipeline/kraken2_db"
+OUTDIR="/put/your/path/emu_pipeline/kraken2_db"
 mkdir -p "$OUTDIR"
 
 echo "📁 Organellar FASTA output will be saved to: $OUTDIR"
