@@ -1,4 +1,66 @@
 #!/usr/bin/env python3
+# =============================================================================
+# Article:
+# Dias, H.M., et al. Reproducible Emu-based workflow for high-fidelity soil and
+# plant microbiome profiling on HPC clusters. Bio-protocol. 2025.
+#
+# Script:
+# Summarize NanoStat reports (pre- and post-NanoFilt) into CSV tables and
+# multi-page PDF reports with tables and QC plots.
+#
+# Author (script):
+# Henrique M. Dias
+#
+# Affiliation:
+# South Dakota State University
+#
+# Date:
+# 2025
+#
+# Description:
+# This script parses NanoStat text reports generated before and after read
+# filtering (e.g., NanoFilt), aggregates key sequencing metrics per barcode,
+# and exports:
+#   - A master CSV with all barcodes × phases (pre/post).
+#   - Per-barcode CSV summaries.
+#   - A multi-page PDF with tabular summaries.
+#   - A multi-page PDF with bar plots for each metric across barcodes.
+#
+# The script:
+#   - Recursively scans two directories (pre- and post-filter) for NanoStat
+#     report files.
+#   - Extracts metrics using regular expressions (mean/median length, quality,
+#     number of reads, N50, etc.).
+#   - Filters out “unclassified” folders by name.
+#   - Builds a tidy pandas DataFrame indexed by (barcode, phase).
+#   - Generates A4-size PDFs for both tables and plots.
+#
+# Assumptions:
+#   - NanoStat reports are plain text files matching patterns:
+#       * pre_dir:  *NanoStats.txt
+#       * post_dir: *filteredNanoStats.txt
+#   - Folder names contain a barcode suffix like `_barcodeXX` to identify
+#     barcodes; otherwise, the folder name is used as the barcode label.
+#   - matplotlib and pandas are installed and available.
+#
+# Inputs (user configuration below):
+#   pre_dir    : directory containing pre-filter NanoStat reports
+#   post_dir   : directory containing post-filter NanoStat reports
+#   output_dir : directory where CSV and PDF summaries will be written
+#
+# Outputs:
+#   - sequencing_summary.csv         : master summary for all barcodes/phases
+#   - {barcode}_summary.csv          : per-barcode summaries
+#   - sequencing_table.pdf           : multi-page table summary
+#   - sequencing_plots.pdf           : metric-wise bar plots (pre vs post)
+#
+# Usage:
+#   python summarize_nanostat_reports.py
+#
+# For full reproducibility, the software versions (Python, pandas, matplotlib,
+# NanoStat, NanoFilt) are documented in the manuscript / documentation.
+# =============================================================================
+
 import os
 import re
 import glob
