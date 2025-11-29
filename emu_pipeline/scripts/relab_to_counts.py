@@ -1,4 +1,72 @@
 #!/usr/bin/env python3
+# =============================================================================
+# Article:
+# Dias, H.M., et al. Reproducible Emu-based workflow for high-fidelity soil and
+# plant microbiome profiling on HPC clusters. Bio-protocol. 2025.
+#
+# Script:
+# Convert relative-abundance tables to raw count tables using per-barcode
+# totals from EMU summary_counts.tsv.
+#
+# Author (script):
+# Henrique M. Dias
+#
+# Affiliation:
+# South Dakota State University
+#
+# Date:
+# 2025
+#
+# Description:
+# This script reconstructs integer raw counts from a relative-abundance table
+# (e.g., EMU downstream output) by:
+#   - Reading per-barcode totals from summary_counts.tsv.
+#   - Matching sample columns to barcodes via numeric keys in their names.
+#   - Multiplying relative abundances by the chosen per-barcode total
+#     (mapped / mapped_classified / total).
+#   - Optionally enforcing that integer counts per sample sum EXACTLY to the
+#     chosen total using the Largest Remainder Method.
+#
+# Key features:
+#   - Robust parsing of summary_counts.tsv (mapped, unmapped, unclassified).
+#   - Heuristic detection of sample vs taxonomy/metadata columns.
+#   - Automatic detection of relative scale (fractions 0–1 vs percentages 0–100).
+#   - Strict-sum reconstruction to match per-sample totals if requested.
+#
+# Assumptions:
+#   - summary_counts.tsv contains the columns:
+#       Barcode, Unmapped_Read_Count, Mapped_Read_Count,
+#       Unclassified_Mapped_Read_Count
+#   - The relative-abundance table is TSV and has sample columns whose names
+#     contain digits or start with "barcode"/"sample".
+#
+# Inputs (command-line arguments):
+#   summary_counts       : path to summary_counts.tsv
+#   relative_abundance   : path to relative-abundance table (TSV)
+#   output_counts        : path to write raw-count table (TSV)
+#
+# Optional flags:
+#   --total-mode {mapped, mapped_classified, total}
+#       mapped            = Mapped_Read_Count (default)
+#       mapped_classified = Mapped_Read_Count - Unclassified_Mapped_Read_Count
+#       total             = Mapped_Read_Count + Unmapped_Read_Count
+#   --strict-sum
+#       Enforce that reconstructed counts per barcode sum exactly to the
+#       chosen total using the Largest Remainder Method.
+#
+# Outputs:
+#   - A TSV raw-count table with the same structure as the input relative
+#     table, but with integer counts instead of relative values.
+#
+# Usage:
+#   python relab_to_counts.py summary_counts.tsv rel_abundance.tsv counts.tsv \
+#       --total-mode mapped_classified --strict-sum
+#
+# For full reproducibility, the versions of Python and dependencies are
+# documented in the manuscript / accompanying documentation.
+# =============================================================================
+
+#!/usr/bin/env python3
 import argparse
 import csv
 import math
