@@ -50,7 +50,7 @@
 #   - ${sample}_filtered.fastq     : organelle-depleted reads for EMU
 #
 # Usage:
-#   sbatch kraken2_classify_filte.slurm
+#   sbatch kraken2_classify_filter.slurm
 #
 # For full reproducibility, the versions of Kraken2, Python, and dependencies
 # are documented in the manuscript / accompanying documentation.
