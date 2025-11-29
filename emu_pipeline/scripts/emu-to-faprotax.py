@@ -1,3 +1,50 @@
+!/usr/bin/env python
+# =============================================================================
+# Article:
+# Dias, H.M., et al. Reproducible Emu-based workflow for high-fidelity soil and
+# plant microbiome profiling on HPC clusters. Bio-protocol. 2025.
+#
+# Script:
+# Convert EMU taxonomic output into a FAPROTAX-compatible abundance table.
+#
+# Author (script):
+# Henrique M. Dias
+#
+# Affiliation:
+# South Dakota State University
+#
+# Date:
+# 2025
+#
+# Description:
+# This script takes an EMU taxonomic abundance table (TSV) and:
+#   - Concatenates EMU taxonomic ranks (superkingdom to genus) into a single
+#     semicolon-separated "taxonomy" string compatible with FAPROTAX.
+#   - Retains only the taxonomy column plus sample abundance columns.
+#   - Writes a FAPROTAX-ready TSV file.
+#
+# Assumptions:
+#   - The input table is a TSV file produced by EMU (or post-processed) and
+#     contains the columns:
+#       superkingdom, phylum, class, order, family, genus
+#   - Sample columns are named with the prefix "barcode" (e.g., barcode01, etc.).
+#
+# Inputs (command-line arguments):
+#   1) input_file.tsv  : EMU-style taxonomic table (TSV)
+#   2) output_file.tsv : path to write FAPROTAX-ready table (TSV)
+#
+# Outputs:
+#   - A TSV file with:
+#       taxonomy    (semicolon-separated lineage)
+#       barcode...  (one column per sample)
+#
+# Usage:
+#   python emu_to_faprotax.py emu_taxonomy.tsv faprotax_input.tsv
+#
+# For full reproducibility, the versions of Python, pandas, and EMU used
+# are documented in the manuscript / accompanying documentation.
+# =============================================================================
+
 import pandas as pd
 import sys
 
