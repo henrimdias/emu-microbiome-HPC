@@ -53,7 +53,7 @@
 #SBATCH --mem=32G
 #SBATCH --partition=compute
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=henrique.dias@sdstate.edu
+#SBATCH --mail-user=put-your-email@email.edu
 
 # Load Conda environment
 source ~/miniconda3/etc/profile.d/conda.sh
