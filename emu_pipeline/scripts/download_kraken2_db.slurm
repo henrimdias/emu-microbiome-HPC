@@ -40,7 +40,7 @@
 #     chloroplast/mitochondrion libraries
 #
 # Usage:
-#   sbatch download_build_kraken2_db.sh
+#   sbatch download_kraken2_db.slurm
 #
 # For full reproducibility, the versions of Kraken2 and dependencies are listed
 # in the manuscript / accompanying documentation.
