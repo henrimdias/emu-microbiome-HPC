@@ -1,0 +1,36 @@
+## Paths
+raw_dir: emu_pipeline/raw_data
+filtered_dir: emu_pipeline/filtered_data
+qc_reports_dir: emu_pipeline/nanoplot_reports
+qc_summary_dir: emu_pipeline/qc_summary_reports
+no_organelle_dir: emu_pipeline/no_organelle_filtered_data
+kraken_db_dir: emu_pipeline/kraken2_db/db
+organelle_refseq_dir: emu_pipeline/kraken2_db
+emu_results_dir: emu_pipeline/emu_results
+emu_db_dir: emu_pipeline/emu_db
+downstream_dir: emu_pipeline/downstream_analysis
+
+## Sample discovery
+# Pattern to discover samples in raw_dir. Supported extensions: .fastq.gz, .fq.gz
+sample_extensions: ["fastq.gz", "fq.gz"]
+
+## NanoFilt parameters
+min_len: 1000
+max_len: 1850
+min_qual: 10
+
+## Kraken2 parameters
+kraken_confidence: 0.50
+kraken_threads: 8
+
+## EMU parameters
+emu_keep_counts: true
+emu_keep_read_assignments: true
+emu_threads: 2
+
+## Downstream optional inputs (if available)
+# Provide if you want to run relab_to_counts and FAPROTAX conversion.
+# These can be produced externally or aggregated from EMU outputs.
+summary_counts_tsv: null
+relative_abundance_tsv: null
+emu_taxonomy_tsv: null
