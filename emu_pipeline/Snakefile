@@ -1,0 +1,230 @@
+import os
+from glob import glob
+
+configfile: "emu_pipeline/config.yaml"
+
+# Helper: discover samples by scanning raw_dir for supported extensions
+RAW_DIR = config["raw_dir"]
+FILTERED_DIR = config["filtered_dir"]
+QC_DIR = config["qc_reports_dir"]
+QC_SUMMARY_DIR = config["qc_summary_dir"]
+NO_ORG_DIR = config["no_organelle_dir"]
+KRAKEN_DB = config["kraken_db_dir"]
+ORG_REFSEQ_DIR = config["organelle_refseq_dir"]
+EMU_RESULTS_DIR = config["emu_results_dir"]
+EMU_DB_DIR = config["emu_db_dir"]
+DOWNSTREAM_DIR = config["downstream_dir"]
+
+EXTS = tuple(config.get("sample_extensions", ["fastq.gz", "fq.gz"]))
+
+def samples_from_raw():
+    files = []
+    for ext in EXTS:
+        files += glob(os.path.join(RAW_DIR, f"*.{ext}"))
+    names = [os.path.basename(p).split(".")[0] for p in files]
+    return sorted(set(names))
+
+SAMPLES = samples_from_raw()
+
+rule all:
+    input:
+        # QC summary outputs
+        os.path.join(QC_SUMMARY_DIR, "sequencing_summary.csv"),
+        os.path.join(QC_SUMMARY_DIR, "QC_summary_plots.pdf"),
+        # Kraken organelle summary (optional but useful)
+        os.path.join(NO_ORG_DIR, "kraken_organelle_summary.tsv"),
+        # Organelle-depleted FASTQs
+        expand(os.path.join(NO_ORG_DIR, "{sample}_filtered.fastq"), sample=SAMPLES),
+        # EMU per-sample output directories
+        expand(directory(os.path.join(EMU_RESULTS_DIR, "{sample}")), sample=SAMPLES)
+
+# -----------------------------
+# NanoPlot on RAW reads
+# -----------------------------
+rule nanoplot_raw:
+    input:
+        lambda wildcards: next(
+            (os.path.join(RAW_DIR, f"{wildcards.sample}." + ext) for ext in EXTS
+            if os.path.exists(os.path.join(RAW_DIR, f"{wildcards.sample}." + ext))),
+            None
+        )
+    output:
+        directory(os.path.join(QC_DIR, "raw", "{sample}"))
+    conda:
+        "emu_pipeline/yml_files/nanotools_env.yml"
+    shell:
+        """
+        mkdir -p {output}
+        NanoPlot --fastq {input} --threads 8 --outdir {output} --plots hex dot --maxlength 2000
+        """
+
+# -----------------------------
+# NanoFilt filtering
+# -----------------------------
+rule nanofilt_filter:
+    input:
+        lambda wildcards: next(
+            (os.path.join(RAW_DIR, f"{wildcards.sample}." + ext) for ext in EXTS
+            if os.path.exists(os.path.join(RAW_DIR, f"{wildcards.sample}." + ext))),
+            None
+        )
+    output:
+        os.path.join(FILTERED_DIR, "{sample}_filtered.fastq.gz")
+    params:
+        min_len=config["min_len"],
+        max_len=config["max_len"],
+        min_qual=config["min_qual"]
+    conda:
+        "emu_pipeline/yml_files/nanotools_env.yml"
+    shell:
+        """
+        mkdir -p {FILTERED_DIR}
+        if [[ "{input}" == *.gz ]]; then
+            zcat {input} | NanoFilt -q {params.min_qual} --length {params.min_len} --maxlength {params.max_len} | gzip > {output}
+        else
+            cat {input} | NanoFilt -q {params.min_qual} --length {params.min_len} --maxlength {params.max_len} | gzip > {output}
+        fi
+        """
+
+# -----------------------------
+# NanoPlot on FILTERED reads
+# -----------------------------
+rule nanoplot_filtered:
+    input:
+        os.path.join(FILTERED_DIR, "{sample}_filtered.fastq.gz")
+    output:
+        directory(os.path.join(QC_DIR, "filtered", "{sample}"))
+    conda:
+        "emu_pipeline/yml_files/nanotools_env.yml"
+    shell:
+        """
+        mkdir -p {output}
+        NanoPlot --fastq {input} --threads 8 --outdir {output} --plots hex dot --maxlength 2000
+        """
+
+# -----------------------------
+# QC summary consolidation
+# -----------------------------
+rule qc_summary:
+    input:
+        raw_dirs=expand(os.path.join(QC_DIR, "raw", "{sample}"), sample=SAMPLES),
+        filt_dirs=expand(os.path.join(QC_DIR, "filtered", "{sample}"), sample=SAMPLES)
+    output:
+        os.path.join(QC_SUMMARY_DIR, "sequencing_summary.csv"),
+        os.path.join(QC_SUMMARY_DIR, "QC_summary_plots.pdf")
+    conda:
+        "emu_pipeline/yml_files/nanotools_env.yml"
+    shell:
+        """
+        mkdir -p {QC_SUMMARY_DIR}
+        python emu_pipeline/scripts/run_QC_summary.py --input {QC_DIR} --output {QC_SUMMARY_DIR}
+        """
+
+# -----------------------------
+# Kraken2: classify organelle + filter unclassified
+# -----------------------------
+rule kraken2_classify:
+    input:
+        os.path.join(FILTERED_DIR, "{sample}_filtered.fastq.gz")
+    output:
+        report=os.path.join(NO_ORG_DIR, "{sample}_report.txt"),
+        kraken_out=os.path.join(NO_ORG_DIR, "{sample}_kraken_output.txt")
+    params:
+        db=KRAKEN_DB,
+        threads=config["kraken_threads"],
+        confidence=config["kraken_confidence"]
+    conda:
+        "emu_pipeline/yml_files/preemu_env.yml"
+    shell:
+        """
+        mkdir -p {NO_ORG_DIR}
+        kraken2 --db {params.db} --threads {params.threads} --confidence {params.confidence} \
+                --report {output.report} --output {output.kraken_out} --gzip-compressed {input}
+        """
+
+rule remove_organelle_reads:
+    input:
+        fq=os.path.join(FILTERED_DIR, "{sample}_filtered.fastq.gz"),
+        k_out=os.path.join(NO_ORG_DIR, "{sample}_kraken_output.txt")
+    output:
+        os.path.join(NO_ORG_DIR, "{sample}_filtered.fastq")
+    conda:
+        "emu_pipeline/yml_files/preemu_env.yml"
+    shell:
+        """
+        python emu_pipeline/scripts/remove_kraken2_organelle_reads.py --input {input.fq} --kraken_output {input.k_out} --output {output}
+        """
+
+rule summarize_kraken2:
+    input:
+        expand(os.path.join(NO_ORG_DIR, "{sample}_report.txt"), sample=SAMPLES)
+    output:
+        os.path.join(NO_ORG_DIR, "kraken_organelle_summary.tsv")
+    conda:
+        "emu_pipeline/yml_files/preemu_env.yml"
+    shell:
+        """
+        python emu_pipeline/scripts/summarize_kraken2_reports.py --input_dir {NO_ORG_DIR} --output_file {output}
+        """
+
+# -----------------------------
+# EMU abundance profiling per sample
+# -----------------------------
+rule emu_abundance:
+    input:
+        os.path.join(NO_ORG_DIR, "{sample}_filtered.fastq")
+    output:
+        directory(os.path.join(EMU_RESULTS_DIR, "{sample}"))
+    params:
+        emu_db=EMU_DB_DIR,
+        threads=config.get("emu_threads", 2),
+        keep_counts=config.get("emu_keep_counts", True),
+        keep_reads=config.get("emu_keep_read_assignments", True)
+    conda:
+        "emu_pipeline/yml_files/emu_env.yml"
+    shell:
+        """
+        export EMU_DATABASE_DIR={params.emu_db}
+        mkdir -p {output}
+        emu abundance --output-dir {output} {"--keep-counts" if params.keep_counts else ""} {"--keep-read-assignments" if params.keep_reads else ""} {input}
+        """
+
+# -----------------------------
+# Optional downstream conversions (run if config paths provided)
+# -----------------------------
+rule relab_to_counts:
+    input:
+        summary=config["summary_counts_tsv"],
+        relab=config["relative_abundance_tsv"]
+    output:
+        os.path.join(DOWNSTREAM_DIR, "counts.tsv")
+    conda:
+        "emu_pipeline/yml_files/faprotax_env.yml"
+    run:
+        if not input.summary or not input.relab:
+            print("[SKIP] relab_to_counts: summary_counts_tsv or relative_abundance_tsv not provided in config.")
+            import pathlib
+            pathlib.Path(output[0]).parent.mkdir(parents=True, exist_ok=True)
+            open(output[0], "w").write("")
+        else:
+            shell(
+                "python emu_pipeline/scripts/relab_to_counts.py {input.summary} {input.relab} {output} --total-mode mapped_classified --strict-sum"
+            )
+
+rule emu_to_faprotax:
+    input:
+        tsv=config["emu_taxonomy_tsv"]
+    output:
+        os.path.join(DOWNSTREAM_DIR, "faprotax_input.tsv")
+    conda:
+        "emu_pipeline/yml_files/faprotax_env.yml"
+    run:
+        if not input.tsv:
+            print("[SKIP] emu_to_faprotax: emu_taxonomy_tsv not provided in config.")
+            import pathlib
+            pathlib.Path(output[0]).parent.mkdir(parents=True, exist_ok=True)
+            open(output[0], "w").write("")
+        else:
+            shell(
+                "python emu_pipeline/scripts/emu-to-faprotax.py {input.tsv} {output}"
+            )
