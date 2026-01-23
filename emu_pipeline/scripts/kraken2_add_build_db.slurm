@@ -81,7 +81,7 @@ kraken2-build --add-to-library "$PLASTID" --db "$DBDIR"
 kraken2-build --add-to-library "$MITO" --db "$DBDIR"
 
 # Download taxonomy (required before build)
-kraken2-build --download-taxonomy --db "$DBDIR"
+kraken2-build --download-taxonomy --use-ftp --db "$DBDIR"
 
 # Build the Kraken2 database
 kraken2-build --build --threads $OMP_NUM_THREADS --db "$DBDIR"
